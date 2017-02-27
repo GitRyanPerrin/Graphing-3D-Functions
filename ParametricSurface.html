@@ -46,7 +46,7 @@
 	var speed = 1; 
 	var radians = 0.1;
 	
-	onKeyDown = function( event ) {
+onKeyDown = function( event ) {
     
     switch( event.keyCode ) {
     
@@ -104,7 +104,7 @@
 	gui.domElement.style.height = "1000px";
 	
 	gui2.domElement.style.position = "absolute";
-	gui2.domElement.style.top = "100px";
+	gui2.domElement.style.top = "10px";
 	gui2.domElement.style.left = "10px";
 	gui2.domElement.style.height = "1000px";
 	
@@ -203,8 +203,8 @@
 		camera.lookAt( new THREE.Vector3(0,0,0) );
 		
 		renderer = new THREE.WebGLRenderer( {antialias: true} );
-        renderer.setClearColor(0x888888, 1.0);
-        renderer.setSize(window.innerWidth, window.innerHeight);
+        	renderer.setClearColor(0x888888, 1.0);
+       		renderer.setSize(window.innerWidth, window.innerHeight);
 		
 		var axes = new createCoordinateSystem();		
 		
