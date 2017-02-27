@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+
+  <meta charset="utf-8" />
+  <title>Parametric Equations</title>
+  <style>
+    html, body {
+	  height: 100%
+      text-align: left;
+    }
+
+	.wrapper {
+		min-height: 100%;
+		height: auto !important;
+		height 100%;
+		margin: 0 auto -4em;
+	}
+	
+	.footer, .push {
+		height: 4em;
+	}
+	
+	canvas {
+		width: 100%
+		height: 100%;
+	}
+  </style>
+</head>
+
+<body>
+
+
+  <script src="https://rawgithub.com/mrdoob/three.js/master/build/three.js"></script> <!-- Get the latest version of the Three.js library. -->
+  <script src="https://github.com/GitRyanPerrin/Graphing-3D-Functions/blob/master/parser.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.5/dat.gui.js"></script>
+  
+  <input type="file" id="fileinput" />
+<script type="text/javascript">
+  function readSingleFile(evt) {
+    //Retrieve the first (and only!) File from the FileList object
+    var f = evt.target.files[0];
+
+    if (f) {
+      var r = new FileReader();
+      r.onload = function(e) {
+          var contents = e.target.result;
+		  
+		var lines = contents.split('\n');
+		  
+        alert(
+             "File Name: \n" + f.name + "\n \n"
+             // +"type: " + f.type + "\n"
+             // +"size: " + f.size + " bytes\n"
+            + "File contents: \n" + contents.substr(0) + "\n \n"
+			+ "Number of lines: " + lines.length + "\n \n"
+		);	 
+		
+		for (var line = 0; line <= lines.length-1; line++) {
+			var headGeometry = new THREE.SphereGeometry(0.1);
+			var head = new THREE.Mesh( headGeometry, new THREE.MeshNormalMaterial() );
+			//head.position.set(contents.substr(0, contents.indexOf(" ")), contents.substr(3, contents.indexOf(" ")), contents.substr(5, contents.indexOf(" ")));
+			head.position.set(lines[line].substr(0,contents.indexOf(" ")),lines[line].substr(3,contents.indexOf(" ")),lines[line].substr(6,contents.indexOf(" ")));
+			scene.add(head);
+			
+			/*alert(
+				lines[line].substr(0,2) + " "
+			  + lines[line].substr(3,2) + " "
+			  + lines[line].substr(6,2)
+			);*/
+		}
+		
+		render();
+		
+		/*var head2 = new THREE.Mesh( headGeometry, new THREE.MeshNormalMaterial() );
+		head2.position.set(contents.substr(8, contents.indexOf(" ")), contents.substr(10, contents.indexOf(" ")),contents.substr(11, contents.indexOf(" ")));
+		scene.add(head2);*/
+		  
+
+      }
+      r.readAsText(f);
+    } else {
+      alert("Failed to load file");
+    }
+  }
+
+  document.getElementById('fileinput').addEventListener('change', readSingleFile, false);
+</script>  
+  
+<script>
+	var container, scene, camera, renderer, stats;
+	
+	var posVector;
+	////////////////////////////////
+	var speed = 1; 
+	var radians = 0.1;
+	
+	onKeyDown = function( event ) {
+    
+    switch( event.keyCode ) {
+    
+        case 87: // w (move forward)
+        camera.translateZ( -speed );
+        break;
+
+        case 83: // s (move backward)
+        camera.translateZ( speed );
+        break;
+		
+		case 65: // a (move left)
+		camera.translateX( -speed );
+		break;
+		
+		case 68: // d (move right)
+		camera.translateX( speed );
+		break;
+	
+		case 69: // e (move up)
+		camera.translateY( speed );
+		break;
+		
+		case 70: // f (move down)
+		camera.translateY( -speed );
+		break;
+		
+		case 82: // look at (0,0,0)
+		camera.lookAt( new THREE.Vector3(0,0,0) );
+		break;
+		
+		}
+		
+		render();
+	};
+	/////////////////////////////////
+
+	var a = 0.01, b = 0.01, c = 0.01, d = 0.01;
+	
+	var meshFunction;
+	var meshFunction2;
+	var xMin = xMax = yMin = yMax = 0;
+	var graphGeometry;
+	var graphGeometry2;
+	var nMat;
+	var graphMesh;
+	var graphMesh2;
+	
+	var gui = new dat.GUI();
+	var gui2 = new dat.GUI();
+	
+	gui.domElement.style.position = "absolute";
+	gui.domElement.style.top = "10px";
+	gui.domElement.style.right = "0px";
+	gui.domElement.style.height = "1000px";
+	
+	gui2.domElement.style.position = "absolute";
+	gui2.domElement.style.top = "100px";
+	gui2.domElement.style.left = "10px";
+	gui2.domElement.style.height = "1000px";
+	
+	var pFunction = new function() {
+		this.xFunc = "sin(v)*sin(u)";
+		this.yFunc = "sin(v)*cos(u)";
+		this.zFunc = "cos(v)";
+	}
+	
+	var pFunction2 = new function() {
+		this.xFunc = "u";
+		this.yFunc = "0";
+		this.zFunc = "v";
+	}
+	
+	var surface = {
+		GraphFunc: function() { graph() },
+		RemoveWF: function() { removeWireframe() }
+	}	
+	
+	var surface2 = {
+		GraphFunc: function() { graph2() },
+		RemoveWF: function() { removeWireframe2() }
+	}
+	
+	var division = new function() {
+		this.value = 20.0;
+	}
+	
+	var division2 = new function() {
+		this.value = 20.0;
+	}
+	
+	var parameters = new function() {
+		this.uMin = 0.0;
+		this.uMax = 6.28;
+		this.vMin = 0.0;
+		this.vMax = 3.14;
+	}
+	
+	var parameters2 = new function() {
+		this.uMin = 0.0;
+		this.uMax = 6.28;
+		this.vMin = 0.0;
+		this.vMax = 3.14;
+	}
+	
+	gui.add(pFunction, 'xFunc');
+	gui.add(pFunction, 'yFunc');
+	gui.add(pFunction, 'zFunc');
+	
+	gui.add(surface, 'GraphFunc').name("Graph Function");
+	gui.add(surface, 'RemoveWF').name("Remove Wireframe");
+	
+	gui.add(division, 'value', 10.0, 300.0).step(5.0).name("Definition");	
+	
+	var f1 = gui.addFolder("Parameters");
+	f1.add(parameters, 'uMin').name("u Minimum");
+	f1.add(parameters, 'uMax').name("u Maximum");
+	f1.add(parameters, 'vMin').name("v Minimum");
+	f1.add(parameters, 'vMax').name("v Maximum");
+	
+	var f2 = gui.addFolder("Constants");
+	f2.add(this, 'a',-5.0, 5.0).step(0.01);
+	f2.add(this, 'b',-5.0, 5.0).step(0.01);
+	f2.add(this, 'c', -5.0, 5.0).step(0.01);
+	f2.add(this, 'd', -5.0, 5.0).step(0.01);
+	
+///////////////////////////////////////////////////
+
+	gui2.add(pFunction2, 'xFunc');
+	gui2.add(pFunction2, 'yFunc');
+	gui2.add(pFunction2, 'zFunc');
+	
+	gui2.add(surface2, 'GraphFunc').name("Graph Function");
+	gui2.add(surface2, 'RemoveWF').name("Remove Wireframe");
+	
+	gui2.add(division2, 'value', 10.0, 300.0).step(5.0).name("Definition");
+	
+	var g1 = gui2.addFolder("Parameters");
+	g1.add(parameters2, 'uMin').name("u Minimum");
+	g1.add(parameters2, 'uMax').name("u Maximum");
+	g1.add(parameters2, 'vMin').name("v Minimum");
+	g1.add(parameters2, 'vMax').name("v Maximum");
+	
+	document.addEventListener( 'keydown', onKeyDown, false );
+	init();
+	
+	function init() {
+	
+		scene = new THREE.Scene();
+		
+		camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 500)
+		scene.add(camera);
+		camera.position.set(10, 6, 10);
+		camera.lookAt( new THREE.Vector3(0,0,0) );
+		
+		renderer = new THREE.WebGLRenderer( {antialias: true} );
+        renderer.setClearColor(0x888888, 1.0);
+        renderer.setSize(window.innerWidth, window.innerHeight);
+		
+		var axes = new createCoordinateSystem();		
+		
+		var light = new THREE.AmbientLight(0x555555);
+		light.position.set(0, 250, 0);
+		scene.add(light);
+		
+		var light2 = new THREE.PointLight(0xFFFFFF);
+		light2.position.set(0, 5, 0);
+		scene.add(light2);
+	
+		nMat = new THREE.MeshPhongMaterial({
+			color: 0xff0000
+		});
+		
+		nMat2 = new THREE.MeshPhongMaterial({
+			color: 0xffffff
+		});
+		
+		nMat.side = THREE.DoubleSide;
+		nMat2.side = THREE.DoubleSide;
+
+        document.body.appendChild(renderer.domElement);
+		render();
+	}
+	
+function graph() {
+	
+	if (graphMesh){
+		scene.remove(graphMesh);
+		scene.remove(wireframe);
+	}
+	
+		xFunc = Parser.parse(pFunction.xFunc).toJSFunction( ['u','v'] );
+		yFunc = Parser.parse(pFunction.yFunc).toJSFunction( ['u','v'] );
+		zFunc = Parser.parse(pFunction.zFunc).toJSFunction( ['u','v'] );
+		
+		var uRange = parameters.uMax - parameters.uMin;
+		var vRange = parameters.vMax - parameters.vMin;
+		
+		meshFunction = function(u0, v0) {
+			var u = u0*uRange + parameters.uMin;
+			var v = v0*vRange + parameters.vMin;
+			var x = xFunc(u,v);
+			var y = yFunc(u,v);
+			var z = zFunc(u,v);
+			return new THREE.Vector3(x,y,z);
+		}
+		
+		var divs = division.value;
+		
+		var paramGeo = new THREE.ParametricGeometry(meshFunction, divs, divs, true);
+		graphMesh = new THREE.Mesh(paramGeo, nMat);
+		scene.add(graphMesh);
+		
+		wireframe = new THREE.WireframeHelper(graphMesh, 0x000000);
+		scene.add(wireframe);
+		render();
+
+}
+
+function removeWireframe() {
+	if(wireframe){
+		scene.remove(wireframe);
+		render();
+	}
+}
+
+function graph2() {
+	
+	if (graphMesh2){
+		scene.remove(graphMesh2);
+		scene.remove(wireframe2);
+	}
+	
+		xFunc = Parser.parse(pFunction2.xFunc).toJSFunction( ['u','v'] );
+		yFunc = Parser.parse(pFunction2.yFunc).toJSFunction( ['u','v'] );
+		zFunc = Parser.parse(pFunction2.zFunc).toJSFunction( ['u','v'] );
+		
+		var uRange = parameters2.uMax - parameters2.uMin;
+		var vRange = parameters2.vMax - parameters2.vMin;
+		
+		meshFunction2 = function(u0, v0) {
+			var u = u0*uRange + parameters2.uMin;
+			var v = v0*vRange + parameters2.vMin;
+			var x = xFunc(u,v);
+			var y = yFunc(u,v);
+			var z = zFunc(u,v);
+			return new THREE.Vector3(x,y,z);
+		}
+		
+		var divs = division2.value;
+		
+		var paramGeo = new THREE.ParametricGeometry(meshFunction2, divs, divs, true);
+		graphMesh2 = new THREE.Mesh(paramGeo, nMat2);
+		scene.add(graphMesh2);
+		
+		wireframe2 = new THREE.WireframeHelper(graphMesh2, 0x000000);
+		scene.add(wireframe2);
+		render();
+
+}
+
+function removeWireframe2() {
+	if(wireframe2){
+		scene.remove(wireframe2);
+		render();
+	}
+}
+	
+	function createCoordinateSystem() {
+		// Axis
+		scene.add( new THREE.AxisHelper(20) );	
+		scene.add( new THREE.AxisHelper(-20) ); 
+		
+		for (var i = -20; i <= 20; i++) {
+		var ticMarkX = new THREE.Geometry();
+		ticMarkX.vertices.push( 
+				new THREE.Vector3(i, 0, 0.25),
+				new THREE.Vector3(i, 0, -0.25)
+		);
+		var lineMatX = new THREE.LineBasicMaterial({
+			color: 0xFF0000
+		});
+		var ticMeshX = new THREE.Line(ticMarkX, lineMatX);
+		scene.add(ticMeshX);
+		
+		var ticMarkY = new THREE.Geometry();
+		ticMarkY.vertices.push(
+				new THREE.Vector3(0.25, i, 0),
+				new THREE.Vector3(-0.25, i, 0)
+		);
+		var lineMatY = new THREE.LineBasicMaterial({
+			color: 0x00FF00
+		});
+		var ticMeshY = new THREE.Line(ticMarkY, lineMatY);
+		scene.add(ticMeshY);
+		
+		var ticMarkZ = new THREE.Geometry();
+		ticMarkZ.vertices.push(
+				new THREE.Vector3(0.25, 0, i),
+				new THREE.Vector3(-0.25, 0, i)
+		);
+		var lineMatZ = new THREE.LineBasicMaterial({
+			color: 0x0000FF
+		});
+		
+		var ticMeshZ = new THREE.Line(ticMarkZ, lineMatZ);
+		scene.add(ticMeshZ);
+		}
+	}
+
+	function render() {
+		renderer.render( scene, camera );
+		
+		renderer.update(0.01);
+		
+		requestAnimationFrame( render );				
+	}
+  window.onload = init;
+  
+</script>
+</body>
+	 
+</body>
+</html>
