@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+
+  <meta charset="utf-8" />
+  <title>Functions of Two Variables</title>
+  <style>
+    html, body {
+	  height: 100%
+      text-align: left;
+    }
+
+	.wrapper {
+		min-height: 100%;
+		height: auto !important;
+		height 100%;
+		margin: 0 auto -4em;
+	}
+	
+	.footer, .push {
+		height: 4em;
+	}
+	
+	canvas {
+		width: 100%
+		height: 100%;
+	}
+  </style>
+</head>
+
+<body>
+
+
+  <script src="https://rawgithub.com/mrdoob/three.js/master/build/three.js"></script> <!-- Get the latest version of the Three.js library. -->
+  <script src="parser.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.5/dat.gui.js"></script>
+  
+<script>
+	var container, scene, camera, renderer, stats;
+	
+	////////////////////////////////
+	var speed = 1; 
+	var radians = 0.1;
+	
+	onKeyDown = function( event ) {
+    
+    switch( event.keyCode ) {
+    
+        case 87: // w (move forward)
+        camera.translateZ( -speed );
+        break;
+
+        case 83: // s (move backward)
+        camera.translateZ( speed );
+        break;
+		
+		case 65: // a (move left)
+		camera.translateX( -speed );
+		break;
+		
+		case 68: // d (move right)
+		camera.translateX( speed );
+		break;
+		
+		case 69: // e (move up)
+		camera.translateY( speed );
+		break;
+		
+		case 70: // f (move down)
+		camera.translateY( -speed );
+		break;
+		
+		case 82: // look at (0,0,0)
+		camera.lookAt( new THREE.Vector3(0,0,0) );
+		break;
+	
+		}
+		
+		render();
+	};
+	/////////////////////////////////
+	
+	var a = 0.01, b = 0.01, c = 0.01, d = 0.01;
+	
+	var meshFunction;
+	var segments = 20;
+	var graphGeometry;
+	var nMat;
+	var graphMesh;
+	var graphMesh2;
+	
+	var gui = new dat.GUI({ width: 250 });
+	var gui2 = new dat.GUI({ width: 250 });
+	
+	gui.domElement.style.position = "absolute";
+	gui.domElement.style.top = "10px";
+	gui.domElement.style.right = "0px";
+	gui.domElement.style.height = "1000px";
+	
+	gui2.domElement.style.position = "absolute";
+	gui2.domElement.style.top = "10px";
+	gui2.domElement.style.left = "10px";
+	gui2.domElement.style.height = "1000px";
+		
+	var camPos = new function() {
+		this.z = 10.0;
+		this.y = 6.0;
+		this.x = 10.0;
+	}
+	
+	var pFunction = new function() {
+		this.zFunc = "cos(abs(x)+abs(y))";
+	}
+	
+	var pFunction2 = new function() {
+		this.zFunc = "x+y"
+	}
+	
+	var surface = {
+		GraphFunc: function() { graph() },
+		RemoveFunc: function() { removeFunction() },
+		RemoveWF: function() { removeWireframe() }
+	}	
+	
+	var surface2 = {
+		GraphFunc: function() { graph2() },
+		RemoveFunc: function() { removeFunction2() },
+		RemoveWF: function() { removeWireframe2() }
+	}
+	
+	var division = new function() {
+		this.value = 20.0;
+	}
+	
+	var division2 = new function() {
+		this.value = 20.0;
+	}
+	
+	var parameters = new function() {
+		this.xMin = -5.0;
+		this.xMax = 5.0;
+		this.yMin = -5.0;
+		this.yMax = 5.0;
+	}
+	
+	var parameters2 = new function() {
+		this.xMin = -5.0;
+		this.xMax = 5.0;
+		this.yMin = -5.0;
+		this.yMax = 5.0;
+	}
+	
+	var colorChange = new function() {
+		this.set = "#ffae23";
+	}
+	
+	var colorChange2 = new function() {
+		this.set = "#00FF00";
+	}
+//////////////////////////////
+//GUI RIGHT SIDE/////////////
+////////////////////////////	
+	gui.add(pFunction, 'zFunc').name("z(x,y) = ");
+	
+	gui.add(surface, 'GraphFunc').name("Graph Function");
+	gui.add(surface, 'RemoveFunc').name("Remove Function");
+	gui.add(surface, 'RemoveWF').name("Remove Wireframe");
+	
+	var f1 = gui.addFolder('Parameters');
+	f1.add(parameters, 'xMin');
+	f1.add(parameters, 'xMax');
+	f1.add(parameters, 'yMin');
+	f1.add(parameters, 'yMax');
+	
+	var f2 = gui.addFolder('Constants');
+	
+	f2.add(this, 'a',-5.0, 5.0).step(0.01);
+	f2.add(this, 'b',-5.0, 5.0).step(0.01);
+	f2.add(this, 'c', -5.0, 5.0).step(0.01);
+	f2.add(this, 'd', -5.0, 5.0).step(0.01);
+	
+	gui.add(division, 'value', 10.0, 250.0).step(5.0).name("Definition");
+	
+	colorfolder = gui.addFolder("Object Color")
+	var colorChanger = colorfolder.addColor(colorChange, 'set').name("Color");
+	colorChanger.onChange( function() {
+		
+		phongMat1 = new THREE.MeshPhongMaterial({
+			color: colorChange.set
+		});
+		phongMat1.side = new THREE.DoubleSide;
+		
+		render();
+	});
+//////////////////////////////
+//END GUI RIGHT /////////////
+////////////////////////////	
+
+//////////////////////////////
+//GUI LEFT SIDE /////////////
+////////////////////////////	
+
+	gui2.add(pFunction2, 'zFunc').name("z(x,y) = ");
+	
+	gui2.add(surface2, 'GraphFunc').name("Graph Function");
+	gui2.add(surface2, 'RemoveFunc').name("Remove Function");
+	gui2.add(surface2, 'RemoveWF').name("Remove Wireframe");
+	
+		
+	var g1 = gui2.addFolder('Parameters');
+	g1.add(parameters2, 'xMin');
+	g1.add(parameters2, 'xMax');
+	g1.add(parameters2, 'yMin');
+	g1.add(parameters2, 'yMax');
+
+	gui2.add(division2, 'value', 10.0, 250.0).step(5.0).name("Definition");
+	
+	colorfolder2 = gui2.addFolder("Object Color")
+	var colorChanger2 = colorfolder2.addColor(colorChange2, 'set').name("Color");
+	colorChanger2.onChange( function() {
+		
+		phongMat2 = new THREE.MeshPhongMaterial({
+			color: colorChange2.set
+		});
+		phongMat2.side = new THREE.DoubleSide;
+		
+		render();
+	});
+//////////////////////////////
+//END LEFT SIDE /////////////
+////////////////////////////
+	
+	document.addEventListener( 'keydown', onKeyDown, false );
+	init();
+	
+	function init() {
+	
+		scene = new THREE.Scene();
+		
+		camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 500)
+		scene.add(camera);
+		camera.position.set(camPos.x, camPos.y, camPos.z);
+		camera.lookAt( new THREE.Vector3(0,0,0) );
+		
+		renderer = new THREE.WebGLRenderer( {antialias: true} );
+        renderer.setClearColor(0x888888, 1.0);
+        renderer.setSize(window.innerWidth, window.innerHeight);
+		
+		var axes = new createCoordinateSystem();		
+		
+		var light = new THREE.DirectionalLight(0xFFFFFF);
+		light.position.set(0, 10, 0);
+		scene.add(light);
+		
+		var light2 = new THREE.AmbientLight(0xFFFFFF);
+		light2.position.set(0,-10,0);
+		scene.add(light2);
+	
+		phongMat1 = new THREE.MeshPhongMaterial({
+			color: colorChange.set
+		});
+		
+		phongMat1.side = THREE.DoubleSide;
+		
+		phongMat2 = new THREE.MeshPhongMaterial({
+			color: colorChange2.set
+		});
+		
+		phongMat2.side = THREE.DoubleSide;
+
+        document.body.appendChild(renderer.domElement);
+		render();
+	}
+	
+function graph() {
+	
+	if (graphMesh){
+		scene.remove(graphMesh);
+		scene.remove(wireframe);
+	}
+	
+		zFunc = Parser.parse(pFunction.zFunc).toJSFunction( ['x','y'] );
+		
+		meshFunction = function(x0, y0) {
+			var x = x0*(parameters.xMax - parameters.xMin) + parameters.xMin;
+			var y = y0*(parameters.yMax - parameters.yMin) + parameters.yMin;
+			var z = zFunc(x,y);
+			return new THREE.Vector3(x,y,z);
+		}
+		
+		var divs = division.value;
+		
+		var paramGeo = new THREE.ParametricGeometry(meshFunction, divs, divs, true);
+		graphMesh = new THREE.Mesh(paramGeo, phongMat1);
+		graphMesh.rotation.x = -Math.PI/2;
+		scene.add(graphMesh);
+		
+		wireframe = new THREE.WireframeHelper(graphMesh, 0x000000);
+		wireframe.rotation.x = -Math.PI/2;
+		scene.add(wireframe);
+		render();
+
+}
+
+function graph2() {
+	
+	if (graphMesh2){
+		scene.remove(graphMesh2);
+		scene.remove(wireframe2);
+	}
+	
+		zFunc = Parser.parse(pFunction2.zFunc).toJSFunction( ['x','y'] );
+		
+		meshFunction = function(x0, y0) {
+			var x = x0*(parameters2.xMax - parameters2.xMin) + parameters2.xMin;
+			var y = y0*(parameters2.yMax - parameters2.yMin) + parameters2.yMin;
+			var z = zFunc(x,y);
+			return new THREE.Vector3(x,y,z);
+		}
+		
+		var divs = division2.value;
+		
+		var paramGeo = new THREE.ParametricGeometry(meshFunction, divs, divs, true);
+		graphMesh2 = new THREE.Mesh(paramGeo, phongMat2);
+		graphMesh2.rotation.x = -Math.PI/2;
+		scene.add(graphMesh2);
+		
+		wireframe2 = new THREE.WireframeHelper(graphMesh2, 0x000000);
+		wireframe2.rotation.x = -Math.PI/2;
+		scene.add(wireframe2);
+		render();
+
+}
+
+function removeWireframe() {
+	if(wireframe){
+		scene.remove(wireframe);
+		render();
+	}
+}
+
+function removeWireframe2() {
+	if(wireframe2) {
+		scene.remove(wireframe2);
+		render();
+	}
+}
+
+function removeFunction() {
+	if(graphMesh) {
+		scene.remove(graphMesh);
+		scene.remove(wireframe);
+		render();
+	}
+}
+
+function removeFunction2() {
+	if(graphMesh2) {
+		scene.remove(graphMesh2);
+		scene.remove(wireframe2);
+		render();
+	}
+}
+	
+	function createCoordinateSystem() {
+		// Axis
+		scene.add( new THREE.AxisHelper(20) );	
+		scene.add( new THREE.AxisHelper(-20) ); 
+		
+		for (var i = -20; i <= 20; i++) {
+		var ticMarkX = new THREE.Geometry();
+		ticMarkX.vertices.push( 
+				new THREE.Vector3(i, 0, 0.25),
+				new THREE.Vector3(i, 0, -0.25)
+		);
+		var lineMatX = new THREE.LineBasicMaterial({
+			color: 0xFF0000
+		});
+		var ticMeshX = new THREE.Line(ticMarkX, lineMatX);
+		scene.add(ticMeshX);
+		
+		var ticMarkY = new THREE.Geometry();
+		ticMarkY.vertices.push(
+				new THREE.Vector3(0.25, i, 0),
+				new THREE.Vector3(-0.25, i, 0)
+		);
+		var lineMatY = new THREE.LineBasicMaterial({
+			color: 0x00FF00
+		});
+		var ticMeshY = new THREE.Line(ticMarkY, lineMatY);
+		scene.add(ticMeshY);
+		
+		var ticMarkZ = new THREE.Geometry();
+		ticMarkZ.vertices.push(
+				new THREE.Vector3(0.25, 0, i),
+				new THREE.Vector3(-0.25, 0, i)
+		);
+		var lineMatZ = new THREE.LineBasicMaterial({
+			color: 0x0000FF
+		});
+		
+		var ticMeshZ = new THREE.Line(ticMarkZ, lineMatZ);
+		scene.add(ticMeshZ);
+		}
+	}
+
+	function render() {
+		renderer.render( scene, camera );
+		
+		renderer.update(0.01);
+
+		requestAnimationFrame( render );				
+	}
+  window.onload = init;
+  
+</script>
+</body>
+	 
+</body>
+</html>
