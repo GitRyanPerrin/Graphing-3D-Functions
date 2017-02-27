@@ -36,57 +36,7 @@
   <script src="js/parser.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.5/dat.gui.js"></script>
   
-  <input type="file" id="fileinput" />
-<script type="text/javascript">
-  function readSingleFile(evt) {
-    //Retrieve the first (and only!) File from the FileList object
-    var f = evt.target.files[0];
 
-    if (f) {
-      var r = new FileReader();
-      r.onload = function(e) {
-          var contents = e.target.result;
-		  
-		var lines = contents.split('\n');
-		  
-        alert(
-             "File Name: \n" + f.name + "\n \n"
-             // +"type: " + f.type + "\n"
-             // +"size: " + f.size + " bytes\n"
-            + "File contents: \n" + contents.substr(0) + "\n \n"
-			+ "Number of lines: " + lines.length + "\n \n"
-		);	 
-		
-		for (var line = 0; line <= lines.length-1; line++) {
-			var headGeometry = new THREE.SphereGeometry(0.1);
-			var head = new THREE.Mesh( headGeometry, new THREE.MeshNormalMaterial() );
-			//head.position.set(contents.substr(0, contents.indexOf(" ")), contents.substr(3, contents.indexOf(" ")), contents.substr(5, contents.indexOf(" ")));
-			head.position.set(lines[line].substr(0,contents.indexOf(" ")),lines[line].substr(3,contents.indexOf(" ")),lines[line].substr(6,contents.indexOf(" ")));
-			scene.add(head);
-			
-			/*alert(
-				lines[line].substr(0,2) + " "
-			  + lines[line].substr(3,2) + " "
-			  + lines[line].substr(6,2)
-			);*/
-		}
-		
-		render();
-		
-		/*var head2 = new THREE.Mesh( headGeometry, new THREE.MeshNormalMaterial() );
-		head2.position.set(contents.substr(8, contents.indexOf(" ")), contents.substr(10, contents.indexOf(" ")),contents.substr(11, contents.indexOf(" ")));
-		scene.add(head2);*/
-		  
-
-      }
-      r.readAsText(f);
-    } else {
-      alert("Failed to load file");
-    }
-  }
-
-  document.getElementById('fileinput').addEventListener('change', readSingleFile, false);
-</script>  
   
 <script>
 	var container, scene, camera, renderer, stats;
