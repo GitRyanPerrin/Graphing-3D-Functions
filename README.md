@@ -9,3 +9,5 @@ at silentmatt.com, and options for varying the bounds of the independent variabl
 
 Two versions of the files were created, one for Virtual-Reality compatability (only tested with the Oculus Rift DK2) and one for viewing
 without a VR Head-Mounted Display. The code for allowing VR compatibility was created by *unknown*.
+
+The non-VR site has keyboard commands for movement: WASD for forward, back, and sideways movements, IJKL for rotations, EF for rise and fall, and finally R for recentering the screen.
